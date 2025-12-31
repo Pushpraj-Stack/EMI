@@ -27,12 +27,31 @@ app.get('/api/data', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 2. Add Data
+// 2. Add Data (Updated)
 app.post('/api/add', async (req, res) => {
     try {
-        const newRecord = await table.create([{ fields: req.body }]);
-        res.json(newRecord);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+        const { name, phone, principal, interestRate, interestType, recordType, startDate, totalAmount } = req.body;
+
+        // Airtable columns ke exact names yahan likhein (Case-Sensitive)
+        const newRecord = await table.create([
+            {
+                fields: {
+                    "Name": name,
+                    "Phone": phone,
+                    "Principal": Number(principal), // Airtable me number hai toh Number() zaroori hai
+                    "InterestRate": Number(interestRate),
+                    "InterestType": interestType,
+                    "RecordType": recordType, // Ensure karein ki ye 'Lend' ya 'Borrow' hi ho
+                    "StartDate": startDate,
+                }
+            }
+        ]);
+        
+        res.json(newRecord[0]);
+    } catch (err) {
+        console.error("Airtable Error:", err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 3. Delete Data
